@@ -1,114 +1,92 @@
-<!DOCTYPE html> 
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Star Merkaba Animation</title>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: black;
-    }
-    canvas {
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <canvas id="merkabaCanvas"></canvas>
+<script type="module">
+  import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
 
-  <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
+  window.onerror = function (msg, src, line, col, err) {
+    console.error("💥 JS ERROR:", msg, "at", `${src}:${line}:${col}`);
+  };
 
-    // Error logger
-    window.onerror = function (msg, src, line, col, err) {
-      console.error("💥 JS ERROR:", msg, "at", ${src}:${line}:${col});
-    };
+  // Setup
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 5;
 
-    // Scene setup
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
+  const renderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById("merkabaCanvas"),
+    antialias: true,
+    alpha: false
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: document.getElementById("merkabaCanvas"),
-      antialias: true,
-      alpha: false
+  // STARFIELD (unchanged)
+  const starTexture = new THREE.TextureLoader().load(
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKUlEQVQYV2NkQAP/GYgYGBgYwRiKGEYwUhgFo1EwCgYQzRiGg7UAAAOyzAX0FFsfWAAAAAElFTkSuQmCC"
+  );
+
+  const starCount = 1200;
+  const positions = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 40;
+  }
+
+  const starGeometry = new THREE.BufferGeometry();
+  starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+  const starMaterial = new THREE.PointsMaterial({
+    map: starTexture,
+    size: 0.1,
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    color: 0xffffff
+  });
+
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  scene.add(stars);
+
+  // MERKABA
+  function createMerkaba() {
+    const group = new THREE.Group();
+    const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
+
+    // Upright tetrahedron
+    const tetra = new THREE.TetrahedronGeometry(1);
+    const edges1 = new THREE.EdgesGeometry(tetra);
+    const line1 = new THREE.LineSegments(edges1, material.clone());
+    group.add(line1);
+
+    // Inverted tetrahedron (mirror)
+    const inverted = new THREE.TetrahedronGeometry(1);
+    inverted.rotateX(Math.PI);
+    inverted.rotateZ(Math.PI);
+    const edges2 = new THREE.EdgesGeometry(inverted);
+    const line2 = new THREE.LineSegments(edges2, material.clone());
+    group.add(line2);
+
+    return group;
+  }
+
+  const merkaba = createMerkaba();
+  scene.add(merkaba);
+
+  // Animate
+  let pulse = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+
+    stars.rotation.y += 0.0005;
+
+    // Spin on vertical Y axis only (clockwise from above)
+    merkaba.rotation.y -= 0.01;
+
+    // Pulse color effect
+    pulse += 0.05;
+    merkaba.children.forEach(line => {
+      line.material.color.setHSL(0.6, 1, 0.5 + 0.5 * Math.sin(pulse));
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Create star texture using base64-encoded circle sprite
-    const starTexture = new THREE.TextureLoader().load(
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKUlEQVQYV2NkQAP/GYgYGBgYwRiKGEYwUhgFo1EwCgYQzRiGg7UAAAOyzAX0FFsfWAAAAAElFTkSuQmCC"
-    );
+    renderer.render(scene, camera);
+  }
 
-    // Starfield
-    const starCount = 1200;
-    const positions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount * 3; i++) {
-      positions[i] = (Math.random() - 0.5) * 40;
-    }
-
-    const starGeometry = new THREE.BufferGeometry();
-    starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-
-    const starMaterial = new THREE.PointsMaterial({
-      map: starTexture,
-      size: 0.1,
-      transparent: true,
-      opacity: 0.9,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      color: 0xffffff
-    });
-
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
-
-    // Merkaba function
-    function createMerkaba() {
-      const group = new THREE.Group();
-      const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
-
-      const tetrahedron = new THREE.TetrahedronGeometry(1);
-      const inverted = new THREE.TetrahedronGeometry(1);
-      inverted.rotateX(Math.PI);
-      inverted.rotateZ(Math.PI);
-
-      [tetrahedron, inverted].forEach((geo) => {
-        const edges = new THREE.EdgesGeometry(geo);
-        const line = new THREE.LineSegments(edges, material.clone());
-        group.add(line);
-      });
-
-      return group;
-    }
-
-    const merkaba = createMerkaba();
-    scene.add(merkaba);
-
-    // Animation loop
-    let pulse = 0;
-    function animate() {
-      requestAnimationFrame(animate);
-
-      stars.rotation.y += 0.0005;
-
-      // Spin on Y axis only
-      merkaba.rotation.y += 0.01;
-
-      // Pulse glow
-      pulse += 0.05;
-      merkaba.children.forEach((line) => {
-        line.material.color.setHSL(0.6, 1, 0.5 + 0.5 * Math.sin(pulse));
-      });
-
-      renderer.render(scene, camera);
-    }
-
-    animate();
-  </script>
-</body>
-</html>
+  animate();
+</script>
