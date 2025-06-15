@@ -72,19 +72,16 @@
       const group = new THREE.Group();
       const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
 
-      const upright = new THREE.TetrahedronGeometry(1);
+      const tetrahedron = new THREE.TetrahedronGeometry(1);
       const inverted = new THREE.TetrahedronGeometry(1);
       inverted.rotateX(Math.PI);
       inverted.rotateZ(Math.PI);
 
-      const edge1 = new THREE.EdgesGeometry(upright);
-      const edge2 = new THREE.EdgesGeometry(inverted);
-
-      const line1 = new THREE.LineSegments(edge1, material.clone());
-      const line2 = new THREE.LineSegments(edge2, material.clone());
-
-      group.add(line1);
-      group.add(line2);
+      [tetrahedron, inverted].forEach((geo) => {
+        const edges = new THREE.EdgesGeometry(geo);
+        const line = new THREE.LineSegments(edges, material.clone());
+        group.add(line);
+      });
 
       return group;
     }
@@ -99,8 +96,8 @@
 
       stars.rotation.y += 0.0005;
 
-      // Spin on Y axis (clockwise from above)
-      merkaba.rotation.y -= 0.01;
+      // Spin on Y axis only
+      merkaba.rotation.y += 0.01;
 
       // Pulse glow
       pulse += 0.05;
