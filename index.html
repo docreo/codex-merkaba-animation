@@ -65,50 +65,50 @@
     });
 
     const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);  
-// MERKABA
-  function createMerkaba() {
-    const group = new THREE.Group();
-    const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
+    scene.add(stars);
 
-    // Upright tetrahedron
-    const tetra = new THREE.TetrahedronGeometry(1);
-    const edges1 = new THREE.EdgesGeometry(tetra);
-    const line1 = new THREE.LineSegments(edges1, material.clone());
-    group.add(line1);
+    // Merkaba function
+    function createMerkaba() {
+      const group = new THREE.Group();
+      const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
 
-    // Inverted tetrahedron (mirror)
-    const inverted = new THREE.TetrahedronGeometry(1);
-    inverted.rotateX(Math.PI);
-    inverted.rotateZ(Math.PI);
-    const edges2 = new THREE.EdgesGeometry(inverted);
-    const line2 = new THREE.LineSegments(edges2, material.clone());
-    group.add(line2);
+      const tetrahedron = new THREE.TetrahedronGeometry(1);
+      const inverted = new THREE.TetrahedronGeometry(1);
+      inverted.rotateX(Math.PI);
+      inverted.rotateZ(Math.PI);
 
-    return group;
-  }
+      [tetrahedron, inverted].forEach((geo) => {
+        const edges = new THREE.EdgesGeometry(geo);
+        const line = new THREE.LineSegments(edges, material.clone());
+        group.add(line);
+      });
 
-  const merkaba = createMerkaba();
-  scene.add(merkaba);
+      return group;
+    }
 
-  // Animate
-  let pulse = 0;
-  function animate() {
-    requestAnimationFrame(animate);
+    const merkaba = createMerkaba();
+    scene.add(merkaba);
 
-    stars.rotation.y += 0.0005;
+    // Animation loop
+    let pulse = 0;
+    function animate() {
+      requestAnimationFrame(animate);
 
-    // Spin on vertical Y axis only (clockwise from above)
-    merkaba.rotation.y -= 0.01;
+      stars.rotation.y += 0.0005;
 
-    // Pulse color effect
-    pulse += 0.05;
-    merkaba.children.forEach(line => {
-      line.material.color.setHSL(0.6, 1, 0.5 + 0.5 * Math.sin(pulse));
-    });
+      // Spin on Y axis only
+      merkaba.rotation.y += 0.01;
 
-    renderer.render(scene, camera);
-  }
+      // Pulse glow
+      pulse += 0.05;
+      merkaba.children.forEach((line) => {
+        line.material.color.setHSL(0.6, 1, 0.5 + 0.5 * Math.sin(pulse));
+      });
 
-  animate();
-</script>
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
