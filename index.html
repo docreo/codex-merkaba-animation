@@ -2,17 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Star Merkaba Animation</title>
-  <link rel="stylesheet" href="./style.css" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <canvas id="merkabaCanvas"></canvas>
-
-  <!-- Load Three.js from CDN -->
   <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
-    import { createMerkaba } from "./merkaba.js";
+
+    function createMerkaba(THREE) {
+      const group = new THREE.Group();
+      const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
+
+      const tetrahedron = new THREE.TetrahedronGeometry(1);
+      const invertedTetrahedron = new THREE.TetrahedronGeometry(1);
+      invertedTetrahedron.rotateX(Math.PI);
+      invertedTetrahedron.rotateY(Math.PI / 3);
+
+      [tetrahedron, invertedTetrahedron].forEach(geo => {
+        const edges = new THREE.EdgesGeometry(geo);
+        const line = new THREE.LineSegments(edges, material.clone());
+        group.add(line);
+      });
+
+      return group;
+    }
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
